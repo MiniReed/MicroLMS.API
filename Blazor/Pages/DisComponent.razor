@@ -1,0 +1,114 @@
+﻿@page "/EditDis/{IdDis:int}"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@using MicroLMS.Domain
+
+<h1>Редактирование дисциплины @NameDis </h1>
+<p>
+    <h3>Изменить название дисциплины</h3>
+    <input @bind="NameDis" placeholder="Введите название дисциплины" />
+    <button @onclick="ChangeDis">Изменить</button>
+</p>
+<p>
+    Cписиок занятий в дисциплине @NameDis
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>Занятие</th>
+                    <th>Колличество часов</th>
+                    <th>Тип занятия</th>
+                    <th></th>
+                    <th></th>
+
+                </tr>
+            </thead>
+            <tbody>
+                <GenericListItems ListOfItems="lessons">
+                    <ItemTemp Context="lesson">
+                        <IndividualLesson lesson="lesson" Delete="DeleteLes" />
+                    </ItemTemp>
+                </GenericListItems>
+            </tbody>
+        </table>
+    </div>
+    <div class="col text-center">
+        <h3>Добавление нового занятия к дисциплине</h3>
+        <p>
+            Название занятия
+            <input @bind="NameLes" placeholder="Название занятия" />
+        </p>
+        <p>
+            Тип занятия
+            <input @bind="TypeLes" placeholder="Тип занятия" />
+        </p>
+        <p>
+            Трудоемкость  занятия
+            <input @bind="HourseQuantity" placeholder="Трудоемкость" />
+        </p>
+        <p>
+            <button @onclick="Addles">Добавить</button>
+        </p>
+    </div>
+@*<AddLesson AddLes="Addles" />*@
+</p>
+
+
+
+@code {
+    [Parameter]
+    public int IdDis { get; set; }
+
+    Discipline discipline;
+    public string NameDis;
+    public string newName;
+
+    public string NameLes;
+    public string TypeLes;
+    public int HourseQuantity;
+
+    public List<Lesson> lessons { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        discipline = await Http.GetFromJsonAsync<Discipline>
+            ("https://localhost:44376/api/Disciplines/" + IdDis);
+        NameDis = discipline.Name;
+        lessons = await Http.GetFromJsonAsync<List<Lesson>>
+    ("https://localhost:44376/api/Disciplines/all/" + IdDis);
+    }
+
+    private async Task Addles()
+    {
+        Lesson lesson = new Lesson
+        {
+            Name = NameLes,
+            HourseQuantity = HourseQuantity,
+            Type = TypeLes,
+            Discipline = discipline
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/Lessons/", lesson);
+        lessons = await Http.GetFromJsonAsync<List<Lesson>>
+        ("https://localhost:44376/api/Disciplines/all/" + IdDis);
+
+    }
+
+    private async void DeleteLes(Lesson lesson)
+    {
+        lessons.Remove(lesson);
+        await Http.DeleteAsync("https://localhost:44376/api/Lessons/" + lesson.Id);
+    }
+
+    private async void ChangeDis()
+    {
+
+        discipline.Name = NameDis;
+        await Http.PutAsJsonAsync("https://localhost:44376/api/Disciplines/", discipline);
+    }
+
+
+}

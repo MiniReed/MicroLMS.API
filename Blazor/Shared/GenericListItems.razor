@@ -1,0 +1,48 @@
+﻿@typeparam TItem
+
+
+@if (ListOfItems == null)
+{
+    if (NullList != null)
+    {
+        @NullList;
+    }
+    else
+    {
+        <p>Данные загружаются</p>
+    }
+}
+else if (ListOfItems.Count == 0)
+{
+    if (NullList != null)
+    {
+        @EnmptyList;
+    }
+    else
+    {
+        <p>Данных нету</p>
+    }
+}
+else
+{
+
+
+        @foreach (var item in ListOfItems)
+        {
+
+            @ItemTemp(item);
+
+        }
+
+}
+
+
+
+@code {
+
+    [Parameter] public RenderFragment<TItem> ItemTemp { get; set; }
+    [Parameter] public List<TItem> ListOfItems { get; set; }
+    [Parameter] public RenderFragment EnmptyList { get; set; }
+    [Parameter] public RenderFragment NullList { get; set; }
+
+}

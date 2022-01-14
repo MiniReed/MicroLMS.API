@@ -1,0 +1,197 @@
+﻿@page "/EditBlock/{IdBlock:int}"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@using MicroLMS.Domain
+
+<h1>Редактирование блока упражнений </h1>
+
+
+<h3>Изменить блок упражнений</h3>
+<p>
+    Название типа:
+    <input @bind="TypeBlock" placeholder="Введите тип блока" />
+
+</p>
+<p>
+    Изменение подтипа:
+    <input @bind="SubTypeBlock" placeholder="Введите подтип блока" />
+</p>
+<p>
+    Общие методические указания
+    <input @bind="ManualBlock" placeholder="Введите общие методические указания" />
+</p>
+<p>
+    Примечания
+    <input @bind="CommentsBlock" placeholder="Введите Примечание" />
+</p>
+<p>
+    <button @onclick="ChangeBlock">Изменить</button>
+</p>
+
+
+<p>
+    <h3>Cписиок упражнений в блоке.</h3>
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>Тип упражнения</th>
+                    <th>Номер</th>
+                    <th>Сложность</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <GenericListItems ListOfItems="exercises">
+                    <ItemTemp Context="exercise">
+                        <IndividualExercise exercise="exercise" Delete="DeleteExercise" />
+                    </ItemTemp>
+                </GenericListItems>
+            </tbody>
+        </table>
+        <h3>Добавление нового упражнения в блок</h3>
+        <p>
+            Тип упражнения
+            <input @bind="TypeExercise" placeholder="Тип упражнения" />
+        </p>
+        <p>
+            Номер упражнения
+            <input @bind="TaskNumberExercise" placeholder="номер упражнения" />
+        </p>
+        <p>
+            Сложность упражнения
+            <input @bind="DifficultyExercise" placeholder="Справка по блоку" />
+        </p>
+        <p>
+            <button @onclick="AddExercise">Добавить</button>
+        </p>
+
+        <h3>Ссылки на материал</h3>
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>Тип контента</th>
+                    <th>Ссылка</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <GenericListItems ListOfItems="content">
+                    <ItemTemp Context="cont">
+                        <IndividualContentURL contentURL="cont" Delete="DeleteContent" />
+                    </ItemTemp>
+                </GenericListItems>
+            </tbody>
+        </table>
+    </div>
+<div class="col text-center">
+    <h3>Добавление контента в блок упражнений</h3>
+    <p>
+        Тип контента упражнений
+        <input @bind="TypeContent" placeholder="Тип контента" />
+    </p>
+    <p>
+        Ссылка на контент
+        <input @bind="URLContent" placeholder="ссылка на контент" />
+    </p>
+    <p>
+        <button @onclick="Addcontent">Добавить</button>
+    </p>
+</div>
+
+
+</p>
+
+@code {
+    [Parameter]
+    public int IdBlock { get; set; }
+
+    public string TypeBlock;
+    public string SubTypeBlock;
+    public string ManualBlock;
+    public string CommentsBlock;
+
+    public string TypeExercise;
+    public int TaskNumberExercise;
+    public int DifficultyExercise;
+
+    public string TypeContent;
+    public string URLContent;
+
+    BlockOfExercise block;
+    public List<ContentURL> content { get; set; }
+    public List<Exercise> exercises { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        block = await Http.GetFromJsonAsync<BlockOfExercise>
+            ("https://localhost:44376/api/BlockOfExercises/" + IdBlock);
+        TypeBlock = block.Type;
+        SubTypeBlock = block.SubType;
+        ManualBlock = block.Manual;
+        CommentsBlock = block.Comments;
+        exercises = await Http.GetFromJsonAsync<List<Exercise>>
+("https://localhost:44376/api/BlockOfExercises/all/" + IdBlock);
+        content = await Http.GetFromJsonAsync<List<ContentURL>>
+    ("https://localhost:44376/api/ContentURL/all/" + IdBlock);
+    }
+
+    private async Task AddExercise()
+    {
+        Exercise exercise = new Exercise
+        {
+            Type = TypeExercise,
+            TaskNumber = TaskNumberExercise,
+            difficulty = DifficultyExercise,
+            blockOfExercises = block
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/exercises/", exercise);
+        exercises = await Http.GetFromJsonAsync<List<Exercise>>
+        ("https://localhost:44376/api/BlockOfExercises/all/" + IdBlock);
+
+    }
+
+    private async Task Addcontent()
+    {
+        ContentURL Content = new ContentURL
+        {
+            Type = TypeContent,
+            URL = URLContent,
+            blockOfExercise = block
+
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/ContentURL/", Content);
+        content = await Http.GetFromJsonAsync<List<ContentURL>>
+        ("https://localhost:44376/api/ContentURL/all/" + IdBlock);
+
+    }
+
+    private async void DeleteExercise(Exercise exercise)
+    {
+        exercises.Remove(exercise);
+        await Http.DeleteAsync("https://localhost:44376/api/exercises/" + exercise.Id);
+    }
+    private async void DeleteContent(ContentURL Content)
+    {
+        content.Remove(Content);
+        await Http.DeleteAsync("https://localhost:44376/api/ContentURL/" + Content.Id);
+    }
+
+    private async void ChangeBlock()
+    {
+        block.Type = TypeBlock;
+        block.SubType = SubTypeBlock;
+        block.Manual = ManualBlock;
+        block.Comments = CommentsBlock;
+
+        await Http.PutAsJsonAsync("https://localhost:44376/api/BlockOfExercises/", block);
+    }
+
+}

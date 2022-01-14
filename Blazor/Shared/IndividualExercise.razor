@@ -1,0 +1,31 @@
+﻿
+@if (exercise == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@exercise.Type</td>
+    <td>@exercise.TaskNumber</td>
+    <td>@exercise.difficulty</td>
+    <td><a href="EditExercise/@exercise.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(exercise))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public Exercise exercise { get; set; }
+
+    [Parameter]
+    public EventCallback<Exercise> Delete { get; set; }
+
+
+}

@@ -1,0 +1,133 @@
+﻿@page "/EditLes/{IdLes:int}"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@using MicroLMS.Domain
+
+<h1>Редактирование занятия @NameLes </h1>
+
+    
+<p>
+    Название занятия:
+    <input @bind="NameLes" placeholder="Введите название занятия" />
+
+</p>
+<p>
+    Колличество часов:
+    <input @bind="HourseQuantity" placeholder="Колличество часов" />
+</p>
+<p>
+     Тип занятия
+    <input @bind="TypeLess" placeholder="Тип занятия" />
+</p>
+<p>
+    <button @onclick="ChangeLes">Изменить</button>
+</p>
+
+<p>
+    Cписиок блоков упражнений в занятии @NameLes
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead class="thead-light">
+                <tr>
+                    <th>Тип</th>
+                    <th>Подтип</th>
+                    <th>Методические указания</th>
+                    <th>Примечание</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <GenericListItems ListOfItems="blocks">
+                    <ItemTemp Context="block">
+                        <IndividualBlockOfExercise block="block" Delete="Deleteblock" />
+                    </ItemTemp>
+                </GenericListItems>
+            </tbody>
+        </table>
+    </div>
+    <div class="col text-center">
+        <h3>Добавление нового блока в занятие</h3>
+        <p>
+            Тип блока упражнений
+            <input @bind="TypeBlock" placeholder="Тип блока" />
+        </p>
+        <p>
+            Подтип  блока упражнений
+            <input @bind="SubTypeBlock" placeholder="Подтип блока" />
+        </p>
+        <p>
+            Методические указания
+            <input @bind="ManualBlock" placeholder="Методические указания" />
+        </p>
+        <p>
+            Примечание
+            <input @bind="CommentBlock" placeholder="Примечание к блоку" />
+        </p>
+        <p>
+            <button @onclick="Addblock">Добавить</button>
+        </p>
+    </div>
+</p>
+@code {
+    [Parameter]
+    public int IdLes { get; set; }
+
+    public string NameLes;
+    public int HourseQuantity;
+    public string TypeLess;
+
+    public string TypeBlock;
+    public string SubTypeBlock;
+    public string ManualBlock;
+    public string CommentBlock;
+
+    Lesson lesson;
+    public List<BlockOfExercise> blocks { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        lesson = await Http.GetFromJsonAsync<Lesson>
+            ("https://localhost:44376/api/Lessons/" + IdLes);
+        NameLes = lesson.Name;
+        HourseQuantity = lesson.HourseQuantity;
+        TypeLess = lesson.Type;
+        blocks = await Http.GetFromJsonAsync<List<BlockOfExercise>>
+    ("https://localhost:44376/api/Lessons/all/" + IdLes);
+    }
+
+    private async Task Addblock()
+    {
+        BlockOfExercise block = new BlockOfExercise
+        {
+            Type = TypeBlock,
+            SubType = SubTypeBlock,
+            Manual = ManualBlock,
+            Comments = CommentBlock,
+            Lesson = lesson
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/BlockOfExercises/", block);
+        blocks = await Http.GetFromJsonAsync<List<BlockOfExercise>>
+        ("https://localhost:44376/api/Lessons/all/" + IdLes);
+
+    }
+    private async void Deleteblock(BlockOfExercise block)
+    {
+        blocks.Remove(block);
+        await Http.DeleteAsync("https://localhost:44376/api/BlockOfExercises/" + block.Id);
+    }
+
+    private async void ChangeLes()
+    {
+        lesson.Name = NameLes;
+        lesson.Type = TypeLess;
+        lesson.HourseQuantity = HourseQuantity;
+        await Http.PutAsJsonAsync("https://localhost:44376/api/Lessons/", lesson);
+
+    }
+}

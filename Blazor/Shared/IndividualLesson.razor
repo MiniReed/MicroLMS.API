@@ -1,0 +1,31 @@
+﻿
+@if (lesson == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@lesson.Name</td>
+    <td>@lesson.HourseQuantity</td>
+    <td>@lesson.Type</td>
+    <td><a href="EditLes/@lesson.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(lesson))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public Lesson lesson { get; set; }
+
+    [Parameter]
+    public EventCallback<Lesson> Delete { get; set; }
+
+
+}

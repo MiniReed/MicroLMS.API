@@ -1,0 +1,29 @@
+﻿
+@if (discipline == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@discipline.Name</td>
+    <td><a href="EditDis/@discipline.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(discipline))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public Discipline discipline { get; set; }
+
+    [Parameter]
+    public EventCallback<Discipline> Delete { get; set; }
+
+
+}

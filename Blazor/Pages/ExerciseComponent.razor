@@ -1,0 +1,191 @@
+﻿@page "/EditExercise/{IdEx:int}"
+@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@using MicroLMS.Domain
+
+<h1>Редактирование упражнения @NameEx </h1>
+
+
+<h3>Изменить название упражнения</h3>
+<p>
+    Изменение типа:
+    <input @bind="TypeEx" placeholder="Введите тип задания" />
+
+</p>
+<p>
+    Номер задания
+    <input @bind="TaskNumberEx" placeholder="" />
+</p>
+<p>
+    Сложность задания
+    <input @bind="difficultyEx" placeholder="" />
+</p>
+<p>
+    <button @onclick="ChangeEx">Изменить</button>
+</p>
+
+
+<div class="table-responsive">
+    <h3>Ссылки на материал</h3>
+    <table class="table table-striped">
+        <thead class="thead-light">
+            <tr>
+                <th>Тип контента</th>
+                <th>Ссылка</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <GenericListItems ListOfItems="content">
+                <ItemTemp Context="cont">
+                    <IndividualContentURL contentURL="cont" Delete="DeleteContent" />
+                </ItemTemp>
+            </GenericListItems>
+        </tbody>
+    </table>
+</div>
+<div class="col text-center">
+    <h3>Добавление контента в упражнение</h3>
+    <p>
+        Тип контента упражнений
+        <input @bind="TypeContent" placeholder="Тип контента" />
+    </p>
+    <p>
+        Ссылка на контент
+        <input @bind="URLContent" placeholder="ссылка на контент" />
+    </p>
+    <p>
+        <button @onclick="Addcontent">Добавить</button>
+    </p>
+</div>
+
+<div class="table-responsive">
+    <h3>Ссылки на тест</h3>
+    <table class="table table-striped">
+        <thead class="thead-light">
+            <tr>
+                <th>Название теста</th>
+                <th>Ссылка</th>
+                <th></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            <GenericListItems ListOfItems="testlinks">
+                <ItemTemp Context="testlink">
+                    <IndividualTestLink TestLink="testlink" Delete="DeleteTestLink"/>
+                </ItemTemp>
+            </GenericListItems>
+        </tbody>
+    </table>
+</div>
+<div class="col text-center">
+    <h3>Добавление теста в упражнение</h3>
+    <p>
+        Название теста
+        <input @bind="NameTest" placeholder="Название теста" />
+    </p>
+    <p>
+        Ссылка на тест
+        <input @bind="URLTest" placeholder="ссылка на контент" />
+    </p>
+    <p>
+        <button @onclick="AddTestLink">Добавить</button>
+    </p>
+</div>
+
+@code{
+    [Parameter]
+    public int IdEx { get; set; }
+
+    public string NameEx;
+
+    public string TypeEx;
+    public int TaskNumberEx;
+    public int difficultyEx;
+
+    public string TypeContent;
+    public string URLContent;
+
+    public string NameTest;
+    public string URLTest;
+
+    Exercise Exercise;
+    public List<ContentURL> content { get; set; }
+    public List<TestLink> testlinks { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        Exercise = await Http.GetFromJsonAsync<Exercise>
+        ("https://localhost:44376/api/Exercises/" + IdEx);
+
+        TypeEx = Exercise.Type;
+        TaskNumberEx = Exercise.TaskNumber;
+        difficultyEx = Exercise.difficulty;
+
+        content = await Http.GetFromJsonAsync<List<ContentURL>>
+    ("https://localhost:44376/api/ContentURL/allEx/" + IdEx);
+        testlinks = await Http.GetFromJsonAsync<List<TestLink>>
+("https://localhost:44376/api/TestLink/all/" + IdEx);
+
+    }
+
+    private async void DeleteContent(ContentURL Content)
+    {
+        content.Remove(Content);
+        await Http.DeleteAsync("https://localhost:44376/api/ContentURL/" + Content.Id);
+    }
+
+    private async void DeleteTestLink(TestLink TestLink)
+    {
+        testlinks.Remove(TestLink);
+        await Http.DeleteAsync("https://localhost:44376/api/TestLink/" + TestLink.Id);
+    }
+
+    private async Task AddTestLink()
+    {
+        TestLink TestLink = new TestLink
+        {
+            Name = NameTest,
+            URL = URLTest,
+            exercise = Exercise
+
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/TestLink/", TestLink);
+        testlinks = await Http.GetFromJsonAsync<List<TestLink>>
+    ("https://localhost:44376/api/TestLink/all/" + IdEx);
+
+
+    }
+
+    private async Task Addcontent()
+    {
+        ContentURL Content = new ContentURL
+        {
+            Type = TypeContent,
+            URL = URLContent,
+            exercise = Exercise
+
+        };
+
+        await Http.PostAsJsonAsync("https://localhost:44376/api/ContentURL/", Content);
+        content = await Http.GetFromJsonAsync<List<ContentURL>>
+        ("https://localhost:44376/api/ContentURL/allEx/" + IdEx);
+
+    }
+
+
+    private async void ChangeEx()
+    {
+        Exercise.Type = TypeEx;
+        Exercise.TaskNumber = TaskNumberEx;
+        Exercise.difficulty = difficultyEx;
+
+        await Http.PutAsJsonAsync("https://localhost:44376/api/Exercises/", Exercise);
+    }
+}

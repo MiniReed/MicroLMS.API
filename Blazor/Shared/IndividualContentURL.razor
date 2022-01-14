@@ -1,0 +1,30 @@
+﻿
+@if (contentURL == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@contentURL.Type</td>
+    <td>@contentURL.URL</td>
+    <td><a href="EditContentURL/@contentURL.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(contentURL))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public ContentURL contentURL { get; set; }
+
+    [Parameter]
+    public EventCallback<ContentURL> Delete { get; set; }
+
+
+}

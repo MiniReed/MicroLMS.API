@@ -1,0 +1,32 @@
+﻿
+@if (block == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@block.Type</td>
+    <td>@block.SubType</td>
+    <td>@block.Manual</td>
+    <td>@block.Comments</td>
+    <td><a href="EditBlock/@block.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(block))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public BlockOfExercise block { get; set; }
+
+    [Parameter]
+    public EventCallback<BlockOfExercise> Delete { get; set; }
+
+
+}

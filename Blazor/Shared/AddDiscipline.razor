@@ -1,0 +1,19 @@
+﻿@using System.Net.Http
+@inject HttpClient Http
+@using System.Net.Http.Json
+@using System.Threading.Tasks
+@using MicroLMS.Domain
+
+
+<button @onclick="()=>AddDis.InvokeAsync()">Добавить</button>
+
+
+
+ @code {
+
+
+     [Parameter]
+     public EventCallback<Discipline> AddDis { get; set; }
+
+    }
+

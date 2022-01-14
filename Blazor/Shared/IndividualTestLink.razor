@@ -1,0 +1,30 @@
+﻿
+@if (TestLink == null)
+{
+    <p></p>
+}
+else
+{   
+<tr>
+    <td>@TestLink.Name</td>
+    <td>@TestLink.URL</td>
+    <td><a href="EditTestLink/@TestLink.Id">Изменить</a></td>
+    <td><button @onclick="@(()=>Delete.InvokeAsync(TestLink))">Удалить</button></td>
+
+</tr>
+   
+}
+
+
+
+
+@code {
+
+    [Parameter]
+    public TestLink TestLink { get; set; }
+
+    [Parameter]
+    public EventCallback<TestLink> Delete { get; set; }
+
+
+}
